@@ -2,6 +2,8 @@ let squares = [];
 let maxSquares = 20;
 let delay = 45; // Delay in frames before adding a new square
 let frameCounter = 0;
+let subRectangles = [];
+let numSubRectangles = 50; // Number of sub rectangles between each main rectangle
 
 function setup() {
   let side = min(windowWidth, windowHeight) * 2 / 3;
@@ -18,7 +20,7 @@ function setup() {
 function draw() {
   background(0);
   
-  // Update and display squares
+  // Update and display main squares
   for (let i = squares.length - 1; i >= 0; i--) {
     squares[i].update();
     squares[i].display();
@@ -28,7 +30,30 @@ function draw() {
       squares.splice(i, 1);
     }
   }
-  
+
+  // Generate sub rectangles between main squares
+  if (squares.length > 1) {
+    subRectangles = [];
+    for (let i = 0; i < squares.length - 1; i++) {
+      let current = squares[i];
+      let next = squares[i + 1];
+      for (let j = 0; j < numSubRectangles; j++) {
+        let t = j / numSubRectangles;
+        let x = lerp(current.x, next.x, t);
+        let y = lerp(current.y, next.y, t);
+        let w = lerp(current.w, next.w, t);
+        let h = lerp(current.h, next.h, t);
+        let c = lerpColor(current.color, next.color, t);
+        subRectangles.push(new SubRectangle(x, y, w, h, c));
+      }
+    }
+  }
+
+  // Display sub rectangles
+  for (let subRect of subRectangles) {
+    subRect.display();
+  }
+
   // Add a new square if there are less than maxSquares and delay has passed
   if (squares.length < maxSquares && frameCounter >= delay) {
     squares.push(new GrowingSquare(width / 2, height / 2));
@@ -73,5 +98,21 @@ class GrowingSquare {
   
   isFullScreen() {
     return this.w >= width && this.h >= height;
+  }
+}
+
+class SubRectangle {
+  constructor(x, y, w, h, color) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.color = color;
+  }
+  
+  display() {
+    fill(this.color);
+    rectMode(CENTER);
+    rect(this.x, this.y, this.w, this.h);
   }
 } 
