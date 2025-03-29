@@ -1,9 +1,11 @@
 let squares = [];
 let maxSquares = 20;
-let delay = 45; // Delay in frames before adding a new square
+let delay = 75; // Delay in frames before adding a new square
 let frameCounter = 0;
 let subRectangles = [];
-let numSubRectangles = 50; // Number of sub rectangles between each main rectangle
+let numSubRectangles = 34; // Number of sub rectangles between each main rectangle
+let subRectFrameCounter = 0;
+let subRectInterval = 1.5; // Interval between generating sub rectangles
 
 function setup() {
   let side = min(windowWidth, windowHeight) * 2 / 3;
@@ -27,30 +29,50 @@ function draw() {
     
     // Remove square if it fills the screen
     if (squares[i].isFullScreen()) {
+      if (i == 1) { // Check if the second rectangle is being removed
+        subRectangles = []; // Clear sub rectangles when the second rectangle disappears
+      }
       squares.splice(i, 1);
     }
   }
 
   // Generate sub rectangles between main squares
   if (squares.length > 1) {
-    subRectangles = [];
-    for (let i = 0; i < squares.length - 1; i++) {
-      let current = squares[i];
-      let next = squares[i + 1];
-      for (let j = 0; j < numSubRectangles; j++) {
-        let t = j / numSubRectangles;
-        let x = lerp(current.x, next.x, t);
-        let y = lerp(current.y, next.y, t);
-        let w = lerp(current.w, next.w, t);
-        let h = lerp(current.h, next.h, t);
-        let c = lerpColor(current.color, next.color, t);
-        subRectangles.push(new SubRectangle(x, y, w, h, c));
+    subRectFrameCounter++;
+    if (subRectFrameCounter >= subRectInterval) {
+      subRectangles = [];
+      for (let i = 0; i < squares.length - 1; i++) {
+        let current = squares[i];
+        let next = squares[i + 1];
+        for (let j = 0; j < numSubRectangles; j += 1) { // Increment by 2 to generate two sub rectangles
+          let t1 = j / numSubRectangles;
+          let t2 = (j + 1) / numSubRectangles;
+          let x1 = lerp(current.x, next.x, t1);
+          let y1 = lerp(current.y, next.y, t1);
+          let w1 = lerp(current.w, next.w, t1);
+          let h1 = lerp(current.h, next.h, t1);
+          let c1 = lerpColor(current.color, next.color, t1);
+          let growthRateX1 = lerp(current.growthRateX, next.growthRateX, t1);
+          let growthRateY1 = lerp(current.growthRateY, next.growthRateY, t1);
+          subRectangles.push(new SubRectangle(x1, y1, w1, h1, c1, growthRateX1, growthRateY1));
+
+          let x2 = lerp(current.x, next.x, t2);
+          let y2 = lerp(current.y, next.y, t2);
+          let w2 = lerp(current.w, next.w, t2);
+          let h2 = lerp(current.h, next.h, t2);
+          let c2 = lerpColor(current.color, next.color, t2);
+          let growthRateX2 = lerp(current.growthRateX, next.growthRateX, t2);
+          let growthRateY2 = lerp(current.growthRateY, next.growthRateY, t2);
+          subRectangles.push(new SubRectangle(x2, y2, w2, h2, c2, growthRateX2, growthRateY2));
+        }
       }
+      subRectFrameCounter = 0; // Reset the counter after generating sub rectangles
     }
   }
 
   // Display sub rectangles
   for (let subRect of subRectangles) {
+    subRect.update();
     subRect.display();
   }
 
@@ -69,8 +91,8 @@ class GrowingSquare {
     this.y = y;
     this.w = 1;
     this.h = 1;
-    this.growthRateX = random(0.1, 5); // Slower growth
-    this.growthRateY = random(0.1, 5); // Slower growth
+    this.growthRateX = random(0.5, 2.5); // Slower growth
+    this.growthRateY = random(0.5, 2.5); // Slower growth
     this.growFasterHorizontally = random() < 0.5;
     this.color = color(random(255), random(255), random(255), 255); // Start fully opaque
   }
@@ -102,12 +124,19 @@ class GrowingSquare {
 }
 
 class SubRectangle {
-  constructor(x, y, w, h, color) {
+  constructor(x, y, w, h, color, growthRateX, growthRateY) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
     this.color = color;
+    this.growthRateX = growthRateX;
+    this.growthRateY = growthRateY;
+  }
+  
+  update() {
+    this.w += this.growthRateX;
+    this.h += this.growthRateY;
   }
   
   display() {
