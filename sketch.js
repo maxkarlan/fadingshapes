@@ -115,7 +115,7 @@ class GrowingSquare {
   display() {
     fill(this.color);
     rectMode(CENTER);
-    rect(this.x, this.y, this.w, this.h);
+    rect(this.x, this.y, this.w, this.h, 20); // Add corner radius of 10
   }
   
   isFullScreen() {
@@ -142,6 +142,6 @@ class SubRectangle {
   display() {
     fill(this.color);
     rectMode(CENTER);
-    rect(this.x, this.y, this.w, this.h);
+    rect(this.x, this.y, this.w, this.h, 20); // Add corner radius of 10
   }
 } 
